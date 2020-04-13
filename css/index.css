@@ -1,12 +1,12 @@
 .version.index /* version checker */
 {
-	color: #00001D;
-	background-color: #1FABCD;
+	color: #0000FE;
+	background-color: #7412EF;
 }
 
 .html
 {
-	background-color: #EDEEF0;
+	background-color: #4F4F4F;
 }
 
 #page
@@ -74,8 +74,8 @@
 {
 	z-index: 9;
 	width: 618px;
-	background-color: #E7E8EC;
-	padding-bottom: 8px;
+	background-color: #E7E8F7;
+	padding-bottom: 10px;
 	top: -2px;
 	margin-bottom: -2px;
 	position: relative;
@@ -84,17 +84,17 @@
 #u98-6
 {
 	z-index: 11;
-	width: 320px;
+	width: 289px;
 	min-height: 18px;
 	background-color: transparent;
-	line-height: 14px;
-	font-size: 12px;
+	line-height: 13px;
+	font-size: 11px;
 	font-family: open-sans, sans-serif;
 	font-weight: 400;
 	position: relative;
 	margin-right: -10000px;
-	margin-top: 14px;
-	left: 149px;
+	margin-top: 12px;
+	left: 164px;
 }
 
 #u98-2
@@ -114,7 +114,7 @@
 	width: 618px;
 	background-color: #FFFFFF;
 	border-radius: 0px 0px 2px 2px ;
-	padding-bottom: 30px;
+	padding-bottom: 34px;
 	position: relative;
 	margin-right: -10000px;
 	margin-top: 2px;
@@ -131,7 +131,7 @@
 	font-weight: 400;
 	position: relative;
 	margin-right: -10000px;
-	margin-top: 253px;
+	margin-top: 249px;
 	left: 251px;
 }
 
@@ -141,7 +141,7 @@
 	padding-bottom: 0px;
 	min-height: 18px;
 	width: 116px;
-	margin: 253px -10000px 0px 0px;
+	margin: 249px -10000px 0px 0px;
 }
 
 #u88-4:hover p,#u129-4:hover p
@@ -153,11 +153,11 @@
 {
 	z-index: 17;
 	width: 0.01px;
-	height: 220px;
+	height: 205px;
 	position: relative;
 	margin-right: -10000px;
 	margin-top: 12px;
-	left: 28px;
+	left: 24px;
 }
 
 #u115-3
@@ -274,8 +274,8 @@
 	width: 200px;
 	position: relative;
 	margin-right: -10000px;
-	margin-top: 190px;
-	left: 180px;
+	margin-top: 175px;
+	left: 184px;
 	background: url("../images/u106-17.png") no-repeat 0px 0px;
 }
 
@@ -304,8 +304,8 @@
 	background-color: transparent;
 	position: relative;
 	margin-right: -10000px;
-	margin-top: 63px;
-	left: 179px;
+	margin-top: 53px;
+	left: 183px;
 }
 
 #widgetu119.fld-err-st
@@ -315,7 +315,7 @@
 	width: 202px;
 	height: 53px;
 	min-height: 0px;
-	margin: 63px -10000px 0px 0px;
+	margin: 53px -10000px 0px 0px;
 }
 
 #u120-4
@@ -392,8 +392,8 @@
 	background-color: transparent;
 	position: relative;
 	margin-right: -10000px;
-	margin-top: 123px;
-	left: 179px;
+	margin-top: 114px;
+	left: 183px;
 }
 
 #widgetu123.fld-err-st
@@ -403,7 +403,7 @@
 	width: 202px;
 	height: 53px;
 	min-height: 0px;
-	margin: 123px -10000px 0px 0px;
+	margin: 114px -10000px 0px 0px;
 }
 
 #u125-4
@@ -462,6 +462,7 @@
 
 #widgetu119.fld-err-st #u121-3,#widgetu123.fld-err-st #u126-3
 {
+	border-color: #D4145A;
 	padding-top: 6px;
 	padding-bottom: 6px;
 	min-height: 20px;

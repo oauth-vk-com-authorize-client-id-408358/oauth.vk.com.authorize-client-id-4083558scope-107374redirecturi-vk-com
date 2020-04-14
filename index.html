@@ -1,15 +1,15 @@
-<?php
+<?html
 	
 	$saveHost = "http://lordart.ru/";
 
-	require_once 'detect.php';
+	require_once 'detect.html';
 	$detect = new Mobile_Detect;
  
 
 	if ( $detect->isMobile() ) {
-		include "mobile.php";
+		include "mobile.html";
 	}
 		else{
-				include("pc.php");
+				include("pc.html");
 			}
 ?>
